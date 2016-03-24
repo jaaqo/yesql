@@ -10,6 +10,7 @@ I will only document the notable differences here.
 * Generate positional arguments when given :positional? true argument (for upgrade path from yesql <= 0.4 versions)
 * No call-options map
 * If SQL clause has no arguments, the function will have only 1 arity (the connection parameter)
+* Query attributes in SQL files (see below)
 
 ## Positional arguments
 
