@@ -72,24 +72,19 @@
 ;; case, we only ever use one group, so we'll unpack the
 ;; single-element list with `first`.
 (defn execute-handler
-  [db sql-and-params call-options]
+  [db sql-and-params]
   (first (jdbc/execute! db sql-and-params)))
 
 (defn insert-handler
-  [db [statement & params] call-options]
+  [db [statement & params]]
   (jdbc/db-do-prepared-return-keys db statement params))
 
 (defn query-handler
-  [db sql-and-params
-   {:keys [row-fn result-set-fn identifiers]
-    :or {identifiers lower-case
-         row-fn identity
-         result-set-fn doall}
-    :as call-options}]
+  [db sql-and-params]
   (jdbc/query db sql-and-params
-              :identifiers identifiers
-              :row-fn row-fn
-              :result-set-fn result-set-fn))
+              :identifiers lower-case
+              :row-fn identity
+              :result-set-fn doall))
 
 (defn generate-query-fn
   "Generate a function to run a query.
@@ -113,16 +108,19 @@
                           (format "First argument must be a database connection to function '%s'."
                                   name))
                   (jdbc-fn connection
-                           (rewrite-query-for-jdbc tokens args)
-                           call-options))
+                           (rewrite-query-for-jdbc tokens args)))
         [display-args generated-function]
         (let [named-args (if-let [as-vec (seq (mapv (comp symbol clojure.core/name)
                                                     required-args))]
                            {:keys as-vec}
                            {})]
-          [(list ['connection named-args])
-           (fn query-wrapper-fn
-             ([connection args] (real-fn connection args)))])]
+          (if (empty? named-args)
+            [(list ['connection])
+             (fn query-wrapper-fn-noargs [connection]
+               (real-fn connection {}))]
+            [(list ['connection named-args])
+             (fn query-wrapper-fn [connection args]
+               (real-fn connection args))]))]
     (with-meta generated-function
       (merge {:name name
               :arglists display-args

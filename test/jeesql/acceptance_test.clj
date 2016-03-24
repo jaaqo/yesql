@@ -13,79 +13,74 @@
   "jeesql/sample_files/acceptance_test_single.sql")
 
 (expect java.util.Date
-        (-> (current-time {} {:connection derby-db})
+        (-> (current-time derby-db)
             first
             :time))
 
 ;;; Multiple-query workflow.
 (defqueries
-  "jeesql/sample_files/acceptance_test_combined.sql"
-  {:connection derby-db})
+  "jeesql/sample_files/acceptance_test_combined.sql")
 
 ;; Create
-(expect (create-person-table!))
+(expect (create-person-table! derby-db))
 
 ;; Insert -> Select.
-(expect {:1 1M} (insert-person<! {:name "Alice"
-                                  :age 20}))
-(expect {:1 2M} (insert-person<! {:name "Bob"
-                                  :age 25}))
-(expect {:1 3M} (insert-person<! {:name "Charlie"
-                                  :age 35}))
+(expect {:1 1M} (insert-person<! derby-db {:name "Alice"
+                                           :age 20}))
+(expect {:1 2M} (insert-person<! derby-db {:name "Bob"
+                                           :age 25}))
+(expect {:1 3M} (insert-person<! derby-db {:name "Charlie"
+                                           :age 35}))
 
-(expect 3 (count (find-older-than {:age 10})))
-(expect 1 (count (find-older-than {:age 30})))
-(expect 0 (count (find-older-than {:age 50})))
+(expect 3 (count (find-older-than derby-db {:age 10})))
+(expect 1 (count (find-older-than derby-db {:age 30})))
+(expect 0 (count (find-older-than derby-db {:age 50})))
 
 ;;; Select with IN.
-(expect 2 (count (find-by-age {:age [20 35]})))
+(expect 2 (count (find-by-age derby-db {:age [20 35]})))
 
 ;; Update -> Select.
-(expect 1 (update-age! {:age 38
-                        :name "Alice"}))
-(expect 0 (update-age! {:age 38
-                        :name "David"}))
+(expect 1 (update-age! derby-db {:age 38
+                                 :name "Alice"}))
+(expect 0 (update-age! derby-db {:age 38
+                                 :name "David"}))
 
-(expect 3 (count (find-older-than {:age 10})))
-(expect 2 (count (find-older-than {:age 30})))
-(expect 0 (count (find-older-than {:age 50})))
+(expect 3 (count (find-older-than derby-db {:age 10})))
+(expect 2 (count (find-older-than derby-db {:age 30})))
+(expect 0 (count (find-older-than derby-db {:age 50})))
 
 ;; Delete -> Select.
-(expect 1 (delete-person! {:name "Alice"}))
+(expect 1 (delete-person! derby-db {:name "Alice"}))
 
-(expect 2 (count (find-older-than {:age 10})))
-(expect 1 (count (find-older-than {:age 30})))
-(expect 0 (count (find-older-than {:age 50})))
+(expect 2 (count (find-older-than derby-db {:age 10})))
+(expect 1 (count (find-older-than derby-db {:age 30})))
+(expect 0 (count (find-older-than derby-db {:age 50})))
 
 ;; Failing transaction: Insert with abort.
 ;; Insert two rows in a transaction. The second throws a deliberate error, meaning no new rows created.
-(expect 2 (count (find-older-than {:age 10})))
+(expect 2 (count (find-older-than derby-db {:age 10})))
 
 (expect SQLException
         (jdbc/with-db-transaction [connection derby-db]
-          (insert-person<! {:name "Eamonn"
-                            :age 20}
-                           {:connection connection})
-          (insert-person<! {:name "Bob"
-                            :age 25}
-                           {:connection connection} )))
+          (insert-person<! connection {:name "Eamonn"
+                                       :age 20})
+          (insert-person<! connection {:name "Bob"
+                                       :age 25} )))
 
 (expect 2
-        (count (find-older-than {:age 10})))
+        (count (find-older-than derby-db {:age 10})))
 
 ;;; Type error.
 (expect SQLDataException
-        (insert-person<! {:name 5
-                          :age "Eamonn"}
-                         {:connection derby-db}))
+        (insert-person<! derby-db {:name 5
+                                   :age "Eamonn"}))
 
 ;; Drop
-(expect (drop-person-table!))
+(expect (drop-person-table! derby-db))
 
 ;; Syntax error handling.
 (defquery syntax-error
-  "jeesql/sample_files/syntax_error.sql"
-  {:connection derby-db})
+  "jeesql/sample_files/syntax_error.sql")
 
 (expect SQLSyntaxErrorException
-        (syntax-error))
+        (syntax-error derby-db))

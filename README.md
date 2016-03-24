@@ -8,7 +8,8 @@ I will only document the notable differences here.
 * Connection is *always* first parameter to query function
 * Connection cannot be given in defqueries phase
 * Generate positional arguments when given :positional? true argument (for upgrade path from yesql <= 0.4 versions)
- 
+* No call-options map
+* If SQL clause has no arguments, the function will have only 1 arity (the connection parameter)
 
 ## Installation
 

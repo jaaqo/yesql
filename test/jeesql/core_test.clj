@@ -14,77 +14,56 @@
                     ["SELECT CURRENT_TIMESTAMP FROM SYSIBM.SYSDUMMY1"]))
 
 (defquery current-time-query
-  "jeesql/sample_files/current_time.sql"
-  {:connection derby-db})
+  "jeesql/sample_files/current_time.sql")
 
 (defquery mixed-parameters-query
-  "jeesql/sample_files/mixed_parameters.sql"
-  {:connection derby-db})
+  "jeesql/sample_files/mixed_parameters.sql")
 
 ;;; Test querying.
 (expect (more-> java.util.Date
                 (-> first :time))
-        (current-time-query))
+        (current-time-query derby-db))
 
 (expect (more-> java.util.Date
                 (-> first :time))
-        (mixed-parameters-query {:value1 1
+        (mixed-parameters-query derby-db
+                                {:value1 1
                                  :value2 2
                                  :? [3 4]}))
 
 (expect empty?
-        (mixed-parameters-query {:value1 1
+        (mixed-parameters-query derby-db
+                                {:value1 1
                                  :value2 2
                                  :? [0 0]}))
 
-;;; Processor functions
-(expect (more-> java.util.Date :time)
-        (current-time-query {} {:result-set-fn first}))
-
-(expect (more-> java.util.Date first)
-        (current-time-query {} {:row-fn :time}))
-
-(expect (more-> java.util.Date (-> first :TIME))
-        (current-time-query {} {:identifiers upper-case}))
-
-(expect java.util.Date
-        (current-time-query {} {:result-set-fn first
-                                :identifiers clojure.string/upper-case
-                                :row-fn :TIME}))
-
 ;;; Test comment rules.
 (defquery inline-comments-query
-  "jeesql/sample_files/inline_comments.sql"
-  {:connection derby-db})
+  "jeesql/sample_files/inline_comments.sql")
 
 (expect (more-> java.util.Date :time
                 "Not -- a comment" :string)
-        (inline-comments-query {} {:result-set-fn first}))
+        (first (inline-comments-query derby-db)))
 
 ;;; Test Metadata.
 (expect (more-> "Just selects the current time.\nNothing fancy." :doc
                 'current-time-query :name
-                (list '[] '[{} {:keys [connection]}]) :arglists)
+                (list '[connection]) :arglists)
         (meta (var current-time-query)))
 
 (expect (more->  "Here's a query with some named and some anonymous parameters.\n(...and some repeats.)" :doc
                  'mixed-parameters-query :name
                  true (-> :arglists list?)
                  ;; TODO We could improve the clarity of what this is testing.
-                 2 (-> :arglists count)
+                 1 (-> :arglists count)
 
-                 1 (-> :arglists first count)
-                 #{'? 'value1 'value2} (-> :arglists first first   :keys set)
-
-                 2 (-> :arglists second count)
-                 #{'? 'value1 'value2} (-> :arglists second first  :keys set)
-                 #{'connection}        (-> :arglists second second :keys set))
+                 2 (-> :arglists first count)
+                 #{'? 'value1 'value2} (-> :arglists first second   :keys set))
         (meta (var mixed-parameters-query)))
 
 ;; Running a query in a transaction and using the result outside of it should work as expected.
 (expect-let [[{time :time}] (jdbc/with-db-transaction [connection derby-db]
-                              (current-time-query {}
-                                                  {:connection connection}))]
+                              (current-time-query connection))]
   java.util.Date
   time)
 
@@ -97,8 +76,7 @@
 (defquery quoting "jeesql/sample_files/quoting.sql")
 
 (expect "'can't'"
-        (:word (first (quoting {}
-                               {:connection derby-db}))))
+        (:word (first (quoting derby-db))))
 
 ;;; Switch into a fresh namespace
 (ns jeesql.core-test.test-require-sql
