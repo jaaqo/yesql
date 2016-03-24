@@ -66,6 +66,5 @@ called, instead of a sequence of maps.
 
 Add this to your [Leiningen](https://github.com/technomancy/leiningen) `:dependencies`:
 
-WIP. Not yet deployed to clojars. Coming soon.
 
 [![Clojars Project](http://clojars.org/webjure/jeesql/latest-version.svg)](http://clojars.org/webjure/jeesql)
