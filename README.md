@@ -44,4 +44,6 @@ Will generate a method that can be called in two ways:
 
 Add this to your [Leiningen](https://github.com/technomancy/leiningen) `:dependencies`:
 
-[![Clojars Project](http://clojars.org/jeesql/latest-version.svg)](http://clojars.org/jeesql)
+WIP. Not yet deployed to clojars. Coming soon.
+
+ <!-- [![Clojars Project](http://clojars.org/jeesql/latest-version.svg)](http://clojars.org/jeesql) -->
