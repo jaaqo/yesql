@@ -1,6 +1,6 @@
-(defproject yesql "0.5.2"
+(defproject jeesql "0.1"
   :description "A Clojure library for using SQL"
-  :url "https://github.com/krisajenkins/yesql"
+  :url "https://github.com/tatut/jeesql"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
@@ -8,7 +8,7 @@
                  [instaparse "1.4.1" :exclusions [org.clojure/clojure]]]
   ;:pedantic? :abort
   :scm {:name "git"
-        :url "https://github.com/krisajenkins/yesql"}
+        :url "https://github.com/tatut/jeesql"}
   :profiles {:dev {:dependencies [[expectations "2.1.3" :exclusions [org.clojure/clojure]]
                                   [org.apache.derby/derby "10.11.1.1"]]
                    :plugins [[lein-autoexpect "1.4.0"]
