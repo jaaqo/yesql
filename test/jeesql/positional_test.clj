@@ -35,3 +35,8 @@
 (expect 2 (count (find-by-name-and-age-range db {:name "%li%"
                                                  :age_min 20
                                                  :age_max 35})))
+
+;; This query has the same parameter name twice, test that
+;; the name isn't repeated in the argument list
+(expect 0 (count (find-by-name-and-age-is-not db "Bob" 25)))
+(expect 2 (count (find-by-name-and-age-is-not db "%li%" 25)))

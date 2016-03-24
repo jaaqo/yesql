@@ -25,7 +25,7 @@
                                              tokens))})
 
 (defn- positional-parameter-list [tokens]
-  (filter symbol? tokens))
+  (distinct (filter symbol? tokens)))
 
 (defn expected-parameter-list
   [query]

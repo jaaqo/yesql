@@ -41,3 +41,9 @@ DROP TABLE person
 SELECT *
 FROM person
 WHERE name LIKE :name AND age >= :age_min AND age <= :age_max
+
+-- name: find-by-name-and-age-is-not
+-- Test same positional parameter name isn't repeated
+SELECT *
+FROM person
+WHERE name LIKE :name AND (age < :age OR age > :age)
