@@ -89,20 +89,38 @@
               :row-fn identity
               :result-set-fn doall))
 
+(defn query-handler-single-value
+  [db sql-and-params]
+  (jdbc/query db sql-and-params
+              :row-fn (comp val first seq)
+              :result-set-fn first))
+
+(def ^:private supported-attributes #{:single?})
+
+(defn- check-attributes [attributes]
+  (when attributes
+    (doseq [key (keys attributes)]
+      (assert (supported-attributes key)
+              (str "Unsupported attribute " key
+                   ". Valid attributes are: "
+                   (join ", " supported-attributes))))))
+
 (defn generate-query-fn
   "Generate a function to run a query.
 
   - If the query name ends in `!` it will call `clojure.java.jdbc/execute!`,
   - If the query name ends in `<!` it will call `clojure.java.jdbc/insert!`,
   - otherwise `clojure.java.jdbc/query` will be used."
-  [{:keys [name docstring statement]
+  [{:keys [name docstring statement attributes]
     :as query}
    query-options]
   (assert name      "Query name is mandatory.")
   (assert statement "Query statement is mandatory.")
+  (check-attributes attributes)
   (let [jdbc-fn (cond
                   (= (take-last 2 name) [\< \!]) insert-handler
                   (= (last name) \!) execute-handler
+                  (:single? attributes) query-handler-single-value
                   :else query-handler)
         required-args (expected-parameter-list statement)
         required-arg-symbols (map (comp symbol clojure.core/name)

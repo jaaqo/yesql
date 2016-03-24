@@ -56,6 +56,10 @@
 (expect 1 (count (find-older-than derby-db {:age 30})))
 (expect 0 (count (find-older-than derby-db {:age 50})))
 
+;; Check that our query with {:single? true} attribute
+;; returns a single value
+(expect 2 (count-people-older-than derby-db {:age 10}))
+
 ;; Failing transaction: Insert with abort.
 ;; Insert two rows in a transaction. The second throws a deliberate error, meaning no new rows created.
 (expect 2 (count (find-older-than derby-db {:age 10})))

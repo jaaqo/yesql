@@ -47,3 +47,7 @@ WHERE name LIKE :name AND age >= :age_min AND age <= :age_max
 SELECT *
 FROM person
 WHERE name LIKE :name AND (age < :age OR age > :age)
+
+-- name: count-people-older-than
+-- single?: true
+SELECT COUNT(*) FROM person WHERE age > :age

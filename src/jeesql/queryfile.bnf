@@ -1,11 +1,18 @@
 queries = <blank-line*> query*
-query = name docstring? statement
+query = name attributes? docstring? statement
 
-docstring = comment+
+attributes = attribute+
+
+attribute = <whitespace? COMMENT_MARKER whitespace?> attribute-name <':' whitespace*> attribute-value <newline>
+attribute-name = #'[\w-\?]+'
+attribute-value = non-whitespace
+
+docstring = !attribute comment+
 
 statement = line (line | <comment>)*
 
 name = <whitespace? COMMENT_MARKER whitespace? NAME_TAG whitespace?> non-whitespace <whitespace? newline>
+
 comment = <whitespace? COMMENT_MARKER whitespace?> !NAME_TAG (non-whitespace whitespace?)* newline
 line = whitespace? !COMMENT_MARKER (non-whitespace whitespace?)* newline
 

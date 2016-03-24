@@ -77,3 +77,12 @@
 (expect ["this-has-trailing-whitespace"]
         (map :name
              (parse-tagged-queries (slurp-from-classpath "jeesql/sample_files/parser_edge_cases.sql"))))
+
+
+;;; Parse queries with attributes
+(expect {:meaning-of-life 42 :result-type :single}
+        (->  "jeesql/sample_files/queries_with_attributes.sql"
+             slurp-from-classpath
+             parse-tagged-queries
+             first
+             :attributes))

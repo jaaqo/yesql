@@ -25,7 +25,16 @@
                 [:statement (trim (join lines))])
    :query (fn [& args]
             (map->Query (into {} args)))
-   :queries list})
+   :queries list
+   :attributes (fn [& args]
+                 [:attributes
+                  (into {}
+                        (map (fn [[_ name value]]
+                               [name value]))
+                        args)])
+   :attribute-name keyword
+   :attribute-value read-string
+   })
 
 (defn parse-tagged-queries
   "Parses a string with Jeesql's defqueries syntax into a sequence of maps."
