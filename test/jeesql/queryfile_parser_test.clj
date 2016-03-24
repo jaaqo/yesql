@@ -1,11 +1,11 @@
-(ns yesql.queryfile-parser-test
+(ns jeesql.queryfile-parser-test
   (:require [clojure.string :refer [join]]
             [clojure.template :refer [do-template]]
             [expectations :refer :all]
             [instaparse.core :as instaparse]
-            [yesql.queryfile-parser :refer :all]
-            [yesql.types :refer [map->Query]]
-            [yesql.util :refer [slurp-from-classpath]])
+            [jeesql.queryfile-parser :refer :all]
+            [jeesql.types :refer [map->Query]]
+            [jeesql.util :refer [slurp-from-classpath]])
   (:import [clojure.lang ExceptionInfo]))
 
 (do-template [start-key input _ expected-output]
@@ -59,21 +59,21 @@
                :statement (join "\n" ["SELECT"
                                       "    1 + 1 AS two"
                                       "FROM SYSIBM.SYSDUMMY1"])})]
- (parse-tagged-queries (slurp-from-classpath "yesql/sample_files/combined_file.sql")))
+ (parse-tagged-queries (slurp-from-classpath "jeesql/sample_files/combined_file.sql")))
 
 ;;; Failures.
 (expect #"Parse error"
         (try
-          (parse-tagged-queries (slurp-from-classpath "yesql/sample_files/tagged_no_name.sql"))
+          (parse-tagged-queries (slurp-from-classpath "jeesql/sample_files/tagged_no_name.sql"))
           (catch ExceptionInfo e (.getMessage e))))
 
 (expect #"Parse error"
         (try
-          (parse-tagged-queries (slurp-from-classpath "yesql/sample_files/tagged_two_names.sql"))
+          (parse-tagged-queries (slurp-from-classpath "jeesql/sample_files/tagged_two_names.sql"))
           (catch ExceptionInfo e (.getMessage e))))
 
 ;;; Parsing edge cases.
 
 (expect ["this-has-trailing-whitespace"]
         (map :name
-             (parse-tagged-queries (slurp-from-classpath "yesql/sample_files/parser_edge_cases.sql"))))
+             (parse-tagged-queries (slurp-from-classpath "jeesql/sample_files/parser_edge_cases.sql"))))

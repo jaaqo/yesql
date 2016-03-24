@@ -1,7 +1,7 @@
-(ns yesql.acceptance-test
+(ns jeesql.acceptance-test
   (:require [expectations :refer :all]
             [clojure.java.jdbc :as jdbc]
-            [yesql.core :refer :all])
+            [jeesql.core :refer :all])
   (:import [java.sql SQLException SQLSyntaxErrorException SQLDataException]))
 
 (def derby-db {:subprotocol "derby"
@@ -10,7 +10,7 @@
 
 ;;; Single query.
 (defquery current-time
-  "yesql/sample_files/acceptance_test_single.sql")
+  "jeesql/sample_files/acceptance_test_single.sql")
 
 (expect java.util.Date
         (-> (current-time {} {:connection derby-db})
@@ -19,7 +19,7 @@
 
 ;;; Multiple-query workflow.
 (defqueries
-  "yesql/sample_files/acceptance_test_combined.sql"
+  "jeesql/sample_files/acceptance_test_combined.sql"
   {:connection derby-db})
 
 ;; Create
@@ -84,7 +84,7 @@
 
 ;; Syntax error handling.
 (defquery syntax-error
-  "yesql/sample_files/syntax_error.sql"
+  "jeesql/sample_files/syntax_error.sql"
   {:connection derby-db})
 
 (expect SQLSyntaxErrorException

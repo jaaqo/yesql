@@ -1,8 +1,8 @@
-(ns yesql.statement-parser-test
+(ns jeesql.statement-parser-test
   (:require [expectations :refer :all]
             [clojure.template :refer [do-template]]
-            [yesql.types :refer [map->Query]]
-            [yesql.statement-parser :refer :all]))
+            [jeesql.types :refer [map->Query]]
+            [jeesql.statement-parser :refer :all]))
 
 (do-template [statement _ split-result]
   (do (expect (quote split-result)

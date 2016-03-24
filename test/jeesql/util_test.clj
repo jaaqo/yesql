@@ -1,7 +1,7 @@
-(ns yesql.util-test
+(ns jeesql.util-test
   (:require [expectations :refer :all]
             [clojure.template :refer [do-template]]
-            [yesql.util :refer :all]))
+            [jeesql.util :refer :all]))
 
 ;;; Test underscores-to-dashes
 (do-template [input output]
@@ -14,7 +14,7 @@
 
 ;;; Test slurp-from-classpath
 (expect #"\bSELECT\b"
-        (slurp-from-classpath "yesql/sample_files/current_time.sql"))
+        (slurp-from-classpath "jeesql/sample_files/current_time.sql"))
 
 (expect java.io.FileNotFoundException
         (slurp-from-classpath "nothing/here"))

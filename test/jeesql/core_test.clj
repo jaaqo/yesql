@@ -1,8 +1,8 @@
-(ns yesql.core-test
+(ns jeesql.core-test
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.string :refer [upper-case]]
             [expectations :refer :all]
-            [yesql.core :refer :all]))
+            [jeesql.core :refer :all]))
 
 (def derby-db {:subprotocol "derby"
                :subname (gensym "memory:")
@@ -14,11 +14,11 @@
                     ["SELECT CURRENT_TIMESTAMP FROM SYSIBM.SYSDUMMY1"]))
 
 (defquery current-time-query
-  "yesql/sample_files/current_time.sql"
+  "jeesql/sample_files/current_time.sql"
   {:connection derby-db})
 
 (defquery mixed-parameters-query
-  "yesql/sample_files/mixed_parameters.sql"
+  "jeesql/sample_files/mixed_parameters.sql"
   {:connection derby-db})
 
 ;;; Test querying.
@@ -54,7 +54,7 @@
 
 ;;; Test comment rules.
 (defquery inline-comments-query
-  "yesql/sample_files/inline_comments.sql"
+  "jeesql/sample_files/inline_comments.sql"
   {:connection derby-db})
 
 (expect (more-> java.util.Date :time
@@ -89,26 +89,26 @@
   time)
 
 ;;; Check defqueries returns the list of defined vars.
-(expect-let [return-value (defqueries "yesql/sample_files/combined_file.sql")]
+(expect-let [return-value (defqueries "jeesql/sample_files/combined_file.sql")]
   (repeat 3 clojure.lang.Var)
   (map type return-value))
 
 ;;; SQL's quoting rules.
-(defquery quoting "yesql/sample_files/quoting.sql")
+(defquery quoting "jeesql/sample_files/quoting.sql")
 
 (expect "'can't'"
         (:word (first (quoting {}
                                {:connection derby-db}))))
 
 ;;; Switch into a fresh namespace
-(ns yesql.core-test.test-require-sql
+(ns jeesql.core-test.test-require-sql
   (:require [expectations :refer :all]
-            [yesql.core :refer :all]))
+            [jeesql.core :refer :all]))
 
-(require-sql ["yesql/sample_files/combined_file.sql" :as combined])
+(require-sql ["jeesql/sample_files/combined_file.sql" :as combined])
 
 (expect var? #'combined/edge)
 
-(require-sql ["yesql/sample_files/combined_file.sql" :refer [the-time]])
+(require-sql ["jeesql/sample_files/combined_file.sql" :refer [the-time]])
 
 (expect var? #'the-time)
