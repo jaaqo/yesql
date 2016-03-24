@@ -11,6 +11,35 @@ I will only document the notable differences here.
 * No call-options map
 * If SQL clause has no arguments, the function will have only 1 arity (the connection parameter)
 
+## Positional arguments
+
+The current yesql approach has moved away from positional arguments in favor of map arguments.
+This is fine, but I have a large project with thousands of query fn calls and I wanted
+to have an upgrade path that supports both ways.
+
+Now passing in {:positional? true} argument to defqueries will also generate the
+positional arguments.
+
+```SQL
+-- name: find-by-name-and-age-range
+-- Test positional paremeter order with these 3 args
+SELECT *
+FROM person
+WHERE name LIKE :name AND age >= :age_min AND age <= :age_max
+```
+
+Will generate a method that can be called in two ways:
+
+```clojure
+
+;; The map parameters still work as expected
+(find-by-name-and-age-range db {:name "Foo%" :age_min 20 :age_max 40})
+
+;; Positional arguments are provided in the order they appear in the SQL
+(find-by-name-and-age-range db "Foo%" 20 40)
+```
+
+
 ## Installation
 
 Add this to your [Leiningen](https://github.com/technomancy/leiningen) `:dependencies`:
