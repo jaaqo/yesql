@@ -46,4 +46,4 @@ Add this to your [Leiningen](https://github.com/technomancy/leiningen) `:depende
 
 WIP. Not yet deployed to clojars. Coming soon.
 
- <!-- [![Clojars Project](http://clojars.org/jeesql/latest-version.svg)](http://clojars.org/jeesql) -->
+[![Clojars Project](http://clojars.org/jeesql/latest-version.svg)](http://clojars.org/jeesql)
