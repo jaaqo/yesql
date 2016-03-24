@@ -39,6 +39,27 @@ Will generate a method that can be called in two ways:
 (find-by-name-and-age-range db "Foo%" 20 40)
 ```
 
+## Query attributes
+
+Jeesql adds the possibility to annotate queries with attributes that change the
+way the query is processed. I think this is better to do at the query site instead
+of at the call site (with yesql's call-options).
+
+Attributes are placed between the name line and the docstring.
+
+Currently the only supported attribute is single? which if true, will return a
+single value as a result of the query function.
+
+```SQL
+-- name: count-people-older-than
+-- single?: true
+-- Count how many people are older than the given age
+SELECT COUNT(*) FROM people WHERE age > :age
+```
+
+Will generate a function that returns a the count number as a single value when
+called, instead of a sequence of maps.
+
 
 ## Installation
 
