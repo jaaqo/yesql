@@ -102,6 +102,8 @@
                   (= (last name) \!) execute-handler
                   :else query-handler)
         required-args (expected-parameter-list statement)
+        required-arg-symbols (map (comp symbol clojure.core/name)
+                                  required-args)
         tokens (tokenize statement)
         real-fn (fn [connection args]
                   (assert connection
@@ -110,14 +112,31 @@
                   (jdbc-fn connection
                            (rewrite-query-for-jdbc tokens args)))
         [display-args generated-function]
-        (let [named-args (if-let [as-vec (seq (mapv (comp symbol clojure.core/name)
-                                                    required-args))]
-                           {:keys as-vec}
-                           {})]
-          (if (empty? named-args)
+        (let [named-args (when-not (empty? required-arg-symbols)
+                           {:keys required-arg-symbols})
+              keywords (map (comp keyword clojure.core/name) required-args)]
+          (cond
+            (nil? named-args)
             [(list ['connection])
              (fn query-wrapper-fn-noargs [connection]
                (real-fn connection {}))]
+
+            (and (:positional? query-options)
+                 (< (count required-args) 20))
+            [(list ['connection named-args]
+                   (vec (concat ['connection] (reverse required-arg-symbols))))
+             (fn query-wrapper-fn-positional
+               [connection & args]
+               (if (and (= 1 (count args))
+                        (map? (first args)))
+                 ;; One argument that is a map
+                 (real-fn connection (first args))
+
+                 ;; Given all positional args
+                 (real-fn connection (zipmap (reverse keywords)
+                                             args))))]
+
+            :default
             [(list ['connection named-args])
              (fn query-wrapper-fn [connection args]
                (real-fn connection args))]))]
