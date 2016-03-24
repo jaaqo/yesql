@@ -35,3 +35,9 @@ WHERE name = :name
 
 -- name: drop-person-table!
 DROP TABLE person
+
+-- name: find-by-name-and-age-range
+-- Test positional paremeter order with these 3 args
+SELECT *
+FROM person
+WHERE name LIKE :name AND age >= :age_min AND age <= :age_max

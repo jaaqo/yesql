@@ -24,6 +24,9 @@
    :expected-positional-count (count (filter (partial = '?)
                                              tokens))})
 
+(defn- positional-parameter-list [tokens]
+  (filter symbol? tokens))
+
 (defn expected-parameter-list
   [query]
   (let [tokens (tokenize query)
@@ -113,8 +116,7 @@
                            (rewrite-query-for-jdbc tokens args)))
         [display-args generated-function]
         (let [named-args (when-not (empty? required-arg-symbols)
-                           {:keys required-arg-symbols})
-              keywords (map (comp keyword clojure.core/name) required-args)]
+                           {:keys (vec required-arg-symbols)})]
           (cond
             (nil? named-args)
             [(list ['connection])
@@ -123,18 +125,19 @@
 
             (and (:positional? query-options)
                  (< (count required-args) 20))
-            [(list ['connection named-args]
-                   (vec (concat ['connection] (reverse required-arg-symbols))))
-             (fn query-wrapper-fn-positional
-               [connection & args]
-               (if (and (= 1 (count args))
-                        (map? (first args)))
-                 ;; One argument that is a map
-                 (real-fn connection (first args))
+            (let [params (positional-parameter-list tokens)
+                  keywords (map (comp keyword clojure.core/name) params)]
+              [(list ['connection named-args]
+                     (vec (concat ['connection] params)))
+               (fn query-wrapper-fn-positional
+                 [connection & args]
+                 (if (and (= 1 (count args))
+                          (map? (first args)))
+                   ;; One argument that is a map
+                   (real-fn connection (first args))
 
-                 ;; Given all positional args
-                 (real-fn connection (zipmap (reverse keywords)
-                                             args))))]
+                   ;; Given all positional args
+                   (real-fn connection (zipmap keywords args))))])
 
             :default
             [(list ['connection named-args])
