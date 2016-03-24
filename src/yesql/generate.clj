@@ -1,11 +1,11 @@
-(ns yesql.generate
+(ns jeesql.generate
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.set :as set]
             [clojure.string :refer [join lower-case]]
-            [yesql.util :refer [create-root-var]]
-            [yesql.types :refer [map->Query]]
-            [yesql.statement-parser :refer [tokenize]])
-  (:import [yesql.types Query]))
+            [jeesql.util :refer [create-root-var]]
+            [jeesql.types :refer [map->Query]]
+            [jeesql.statement-parser :refer [tokenize]])
+  (:import [jeesql.types Query]))
 
 (def in-list-parameter?
   "Check if a type triggers IN-list expansion."
@@ -107,39 +107,22 @@
                   (= (last name) \!) execute-handler
                   :else query-handler)
         required-args (expected-parameter-list statement)
-        global-connection (:connection query-options)
         tokens (tokenize statement)
-        real-fn (fn [args call-options]
-                  (let [connection (or (:connection call-options)
-                                       global-connection)]
-                    (assert connection
-                            (format (join "\n"
-                                          ["No database connection supplied to function '%s',"
-                                           "Check the docs, and supply {:connection ...} as an option to the function call, or globally to the defquery declaration."])
-                                    name))
-                    (jdbc-fn connection
-                             (rewrite-query-for-jdbc tokens args)
-                             call-options)))
-        [display-args generated-function] (let [named-args (if-let [as-vec (seq (mapv (comp symbol clojure.core/name)
-                                                                                      required-args))]
-                                                             {:keys as-vec}
-                                                             {})
-                                                global-args {:keys ['connection]}]
-                                            (if global-connection
-                                              (if (empty? required-args)
-                                                [(list []
-                                                       [named-args global-args])
-                                                 (fn query-wrapper-fn
-                                                   ([] (query-wrapper-fn {} {}))
-                                                   ([args call-options] (real-fn args call-options)))]
-                                                [(list [named-args]
-                                                       [named-args global-args])
-                                                 (fn query-wrapper-fn
-                                                   ([args] (query-wrapper-fn args {}))
-                                                   ([args call-options] (real-fn args call-options)))])
-                                              [(list [named-args global-args])
-                                               (fn query-wrapper-fn
-                                                 ([args call-options] (real-fn args call-options)))]))]
+        real-fn (fn [connection args]
+                  (assert connection
+                          (format "First argument must be a database connection to function '%s'."
+                                  name))
+                  (jdbc-fn connection
+                           (rewrite-query-for-jdbc tokens args)
+                           call-options))
+        [display-args generated-function]
+        (let [named-args (if-let [as-vec (seq (mapv (comp symbol clojure.core/name)
+                                                    required-args))]
+                           {:keys as-vec}
+                           {})]
+          [(list ['connection named-args])
+           (fn query-wrapper-fn
+             ([connection args] (real-fn connection args)))])]
     (with-meta generated-function
       (merge {:name name
               :arglists display-args

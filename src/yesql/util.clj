@@ -1,4 +1,4 @@
-(ns yesql.util
+(ns jeesql.util
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
             [clojure.pprint :refer [pprint]])

@@ -1,13 +1,13 @@
-(ns yesql.statement-parser
+(ns jeesql.statement-parser
   (:require [clojure.java.io :as io]
             [clojure.string :refer [join]]
             [instaparse.core :as instaparse]
-            [yesql.util :refer [str-non-nil]]
-            [yesql.instaparse-util :refer [process-instaparse-result]])
-  (:import [yesql.types Query]))
+            [jeesql.util :refer [str-non-nil]]
+            [jeesql.instaparse-util :refer [process-instaparse-result]])
+  (:import [jeesql.types Query]))
 
 (def parser
-  (instaparse/parser (io/resource "yesql/statement.bnf")))
+  (instaparse/parser (io/resource "jeesql/statement.bnf")))
 
 (def ^:private parser-transforms
   {:statement vector

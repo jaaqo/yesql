@@ -1,4 +1,4 @@
-(ns yesql.instaparse-util
+(ns jeesql.instaparse-util
   (:require [instaparse.core :as instaparse])
   (:import [java.io StringWriter]))
 
@@ -10,6 +10,6 @@
       (throw (ex-info (.toString *out*)
                       failure)))
     (if (second parse-results)
-      (throw (ex-info "Ambiguous parse - please report this as a bug at https://github.com/krisajenkins/yesql/issues"
+      (throw (ex-info "Ambiguous parse - please report this as a bug at https://github.com/krisajenkins/jeesql/issues"
                       {:variations (count parse-results)}))
       (first parse-results))))

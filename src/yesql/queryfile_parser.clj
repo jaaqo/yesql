@@ -1,13 +1,13 @@
-(ns yesql.queryfile-parser
+(ns jeesql.queryfile-parser
   (:require [clojure.java.io :as io]
             [clojure.string :refer [join trim]]
             [instaparse.core :as instaparse]
-            [yesql.types :refer [map->Query]]
-            [yesql.util :refer [str-non-nil]]
-            [yesql.instaparse-util :refer [process-instaparse-result]]))
+            [jeesql.types :refer [map->Query]]
+            [jeesql.util :refer [str-non-nil]]
+            [jeesql.instaparse-util :refer [process-instaparse-result]]))
 
 (def parser
-  (let [url (io/resource "yesql/queryfile.bnf")]
+  (let [url (io/resource "jeesql/queryfile.bnf")]
     (assert url)
     (instaparse/parser url)))
 
@@ -28,7 +28,7 @@
    :queries list})
 
 (defn parse-tagged-queries
-  "Parses a string with Yesql's defqueries syntax into a sequence of maps."
+  "Parses a string with Jeesql's defqueries syntax into a sequence of maps."
   [text]
   (process-instaparse-result
    (instaparse/transform parser-transforms

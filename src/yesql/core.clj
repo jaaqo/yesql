@@ -1,7 +1,7 @@
-(ns yesql.core
-  (:require [yesql.util :refer [slurp-from-classpath]]
-            [yesql.generate :refer [generate-var]]
-            [yesql.queryfile-parser :refer [parse-tagged-queries]]))
+(ns jeesql.core
+  (:require [jeesql.util :refer [slurp-from-classpath]]
+            [jeesql.generate :refer [generate-var]]
+            [jeesql.queryfile-parser :refer [parse-tagged-queries]]))
 
 (defn defqueries
   "Defines several query functions, as defined in the given SQL file.
@@ -27,7 +27,7 @@
 
 ;;; defquery is a macro solely because of the unquoted symbol it accepts
 ;;; as its first argument. It is tempting to deprecate defquery. There
-;;; again, it makes things so easy to get started with yesql it might
+;;; again, it makes things so easy to get started with jeesql it might
 ;;; be worth keeping for that reason alone.
 (defmacro defquery
   "Defines a query function, as defined in the given SQL file.
@@ -38,7 +38,7 @@
      `(defquery* ~(str name) ~filename ~options)))
 
 (defmacro require-sql
-  "Require-like behavior for yesql, to prevent namespace pollution.
+  "Require-like behavior for jeesql, to prevent namespace pollution.
    Parameter is a list of [sql-source-file-name [:as alias] [:refer [var1 var2]]]
    At least one of :as or :refer is required
    Usage: (require-sql [\"sql/foo.sql\" :as foo-sql :refer [some-query-fn])"
@@ -52,8 +52,8 @@
        (ns-unalias *ns* '~as)
        (create-ns '~target-ns)
        (in-ns '~target-ns)
-       (clojure.core/require '[yesql.core])
-       (yesql.core/defqueries ~sql-file)
+       (clojure.core/require '[jeesql.core])
+       (jeesql.core/defqueries ~sql-file)
        (clojure.core/in-ns '~current-ns)
        ~(when as
           `(clojure.core/alias '~as '~target-ns))
