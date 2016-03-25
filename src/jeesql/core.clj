@@ -1,7 +1,8 @@
 (ns jeesql.core
-  (:require [jeesql.util :refer [slurp-from-classpath]]
+  (:require [jeesql.util :refer [resource-file-url slurp-from-classpath]]
             [jeesql.generate :refer [generate-var]]
-            [jeesql.queryfile-parser :refer [parse-tagged-queries]]))
+            [jeesql.queryfile-parser :refer [parse-tagged-queries]]
+            [jeesql.autoreload :refer [autoreload]]))
 
 (defn defqueries
   "Defines several query functions, as defined in the given SQL file.
@@ -11,31 +12,14 @@
   ([filename]
      (defqueries filename {}))
   ([filename options]
-     (doall (->> filename
-                 slurp-from-classpath
-                 parse-tagged-queries
-                 (map #(generate-var % options))))))
-
-(defn defquery*
-  [name filename options]
-  ;;; TODO Now that we have a better parser, this is a somewhat suspicious way of writing this code.
-  (doall (->> filename
-              slurp-from-classpath
-              (format "-- name: %s\n%s" name)
-              parse-tagged-queries
-              (map #(generate-var % options)))))
-
-;;; defquery is a macro solely because of the unquoted symbol it accepts
-;;; as its first argument. It is tempting to deprecate defquery. There
-;;; again, it makes things so easy to get started with jeesql it might
-;;; be worth keeping for that reason alone.
-(defmacro defquery
-  "Defines a query function, as defined in the given SQL file.
-  Any comments in that file will form the docstring."
-  ([name filename]
-     `(defquery ~name ~filename {}))
-  ([name filename options]
-     `(defquery* ~(str name) ~filename ~options)))
+   (let [file-url (resource-file-url filename)
+         ns *ns*
+         reload-fn (fn [content]
+                     (doall (->> content
+                                 parse-tagged-queries
+                                 (map #(generate-var ns % options)))))]
+     (autoreload file-url reload-fn)
+     (reload-fn (slurp file-url)))))
 
 (defmacro require-sql
   "Require-like behavior for jeesql, to prevent namespace pollution.

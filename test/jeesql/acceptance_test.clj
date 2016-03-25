@@ -8,12 +8,9 @@
                :subname (gensym "memory:")
                :create true})
 
-;;; Single query.
-(defquery current-time
-  "jeesql/sample_files/acceptance_test_single.sql")
-
+(defqueries "jeesql/sample_files/current_time.sql")
 (expect java.util.Date
-        (-> (current-time derby-db)
+        (-> (current-time-query derby-db)
             first
             :time))
 
@@ -83,8 +80,7 @@
 (expect (drop-person-table! derby-db))
 
 ;; Syntax error handling.
-(defquery syntax-error
-  "jeesql/sample_files/syntax_error.sql")
+(defqueries "jeesql/sample_files/syntax_error.sql")
 
 (expect SQLSyntaxErrorException
         (syntax-error derby-db))

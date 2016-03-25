@@ -15,13 +15,14 @@
   [& args]
   (apply str "" args))
 
+(defn resource-file-url [path]
+  (or (io/resource path)
+      (throw (FileNotFoundException. path))))
+
 (defn slurp-from-classpath
   "Slurps a file from the classpath."
   [path]
-  (or (some-> path
-              io/resource
-              slurp)
-      (throw (FileNotFoundException. path))))
+  (slurp (resource-file-url path)))
 
 ;;; TODO There may well be a built-in for this. If there is, I have not found it.
 (defn create-root-var
@@ -30,7 +31,7 @@
    (create-root-var *ns* name value))
 
   ([ns name value]
-   (intern *ns*
+   (intern ns
            (with-meta (symbol name)
              (meta value))
            value)))

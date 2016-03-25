@@ -13,11 +13,9 @@
         (jdbc/query derby-db
                     ["SELECT CURRENT_TIMESTAMP FROM SYSIBM.SYSDUMMY1"]))
 
-(defquery current-time-query
-  "jeesql/sample_files/current_time.sql")
+(defqueries "jeesql/sample_files/current_time.sql")
 
-(defquery mixed-parameters-query
-  "jeesql/sample_files/mixed_parameters.sql")
+(defqueries "jeesql/sample_files/mixed_parameters.sql")
 
 ;;; Test querying.
 (expect (more-> java.util.Date
@@ -38,8 +36,7 @@
                                  :? [0 0]}))
 
 ;;; Test comment rules.
-(defquery inline-comments-query
-  "jeesql/sample_files/inline_comments.sql")
+(defqueries "jeesql/sample_files/inline_comments.sql")
 
 (expect (more-> java.util.Date :time
                 "Not -- a comment" :string)
@@ -73,7 +70,7 @@
   (map type return-value))
 
 ;;; SQL's quoting rules.
-(defquery quoting "jeesql/sample_files/quoting.sql")
+(defqueries "jeesql/sample_files/quoting.sql")
 
 (expect "'can't'"
         (:word (first (quoting derby-db))))

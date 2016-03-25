@@ -1,3 +1,4 @@
+-- name: current-time-query
 -- Just selects the current time.
 -- Nothing fancy.
 SELECT CURRENT_TIMESTAMP AS time

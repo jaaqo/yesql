@@ -168,6 +168,8 @@
              (when docstring
                {:doc docstring})))))
 
-(defn generate-var [this options]
-  (create-root-var (:name this)
-                   (generate-query-fn this options)))
+(defn generate-var
+  ([this options] (generate-var *ns* this options))
+  ([ns this options]
+   (create-root-var ns (:name this)
+                    (generate-query-fn this options))))

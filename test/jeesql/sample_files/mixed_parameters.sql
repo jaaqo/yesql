@@ -1,3 +1,4 @@
+-- name: mixed-parameters-query
 -- Here's a query with some named and some anonymous parameters.
 -- (...and some repeats.)
 SELECT CURRENT_TIMESTAMP AS time
