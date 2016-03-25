@@ -2,7 +2,7 @@
   "Support automatic reloading when in development mode. If classpath resources are
   file URLs, watches changes in them."
   (:require [clojure.java.io :as io])
-  (:import [java.util.concurrent Executors TimeUnit]))
+  (:import [java.util.concurrent Executors TimeUnit ThreadFactory]))
 
 ;; Tried using Java nio WatchService but the API was horrible and the
 ;; notifications arrived way too slowly... and it was polling on OS X.
@@ -49,7 +49,11 @@ with the file contents.
 
 (def reload-poll-ms 2000)
 (defonce timer
-  (doto (Executors/newSingleThreadScheduledExecutor)
+  (doto (Executors/newSingleThreadScheduledExecutor
+         (reify ThreadFactory
+           (newThread [this r]
+             (doto (.newThread (Executors/defaultThreadFactory) r)
+               (.setDaemon true)))))
     (.scheduleAtFixedRate #(send watch-agent check-for-reload)
                           reload-poll-ms reload-poll-ms
                           TimeUnit/MILLISECONDS)))
