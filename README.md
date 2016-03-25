@@ -11,6 +11,8 @@ I will only document the notable differences here.
 * No call-options map
 * If SQL clause has no arguments, the function will have only 1 arity (the connection parameter)
 * Query attributes in SQL files (see below)
+* defquery support is removed (only defqueries supported)
+* automatic reload of defqueries files
 
 ## Positional arguments
 
@@ -61,6 +63,11 @@ SELECT COUNT(*) FROM people WHERE age > :age
 Will generate a function that returns a the count number as a single value when
 called, instead of a sequence of maps.
 
+## Automatic reload
+
+Calls to defqueries will register the files for watching. If the file changes the
+file is reloaded. This removes the need to constantly switch between the SQL file
+and the Clojure file to eval again when developing.
 
 ## Installation
 
