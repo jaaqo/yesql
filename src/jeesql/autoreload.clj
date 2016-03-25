@@ -48,12 +48,21 @@ with the file contents.
   (send watch-agent watch-file file-url reload-fn))
 
 (def reload-poll-ms 2000)
-(defonce timer
-  (doto (Executors/newSingleThreadScheduledExecutor
-         (reify ThreadFactory
-           (newThread [this r]
-             (doto (.newThread (Executors/defaultThreadFactory) r)
-               (.setDaemon true)))))
-    (.scheduleAtFixedRate #(send watch-agent check-for-reload)
-                          reload-poll-ms reload-poll-ms
-                          TimeUnit/MILLISECONDS)))
+(defonce reloader (atom nil))
+
+(defn start-autoreload []
+  (swap! reloader
+         (fn [reloader]
+           (or reloader
+               (doto (Executors/newSingleThreadScheduledExecutor)
+                 (.scheduleAtFixedRate #(send watch-agent check-for-reload)
+                                       reload-poll-ms reload-poll-ms
+                                       TimeUnit/MILLISECONDS))))))
+(defn stop-autoreload []
+  (swap! reloader
+         #(when %
+            (.shutdownNow %)
+            nil)))
+
+(when-not *compile-files*
+  (start-autoreload))
