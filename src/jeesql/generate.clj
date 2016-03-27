@@ -82,6 +82,11 @@
   [db [statement & params]]
   (jdbc/db-do-prepared-return-keys db statement params))
 
+(defn insert-handler-return-keys
+  [return-keys db [statement & params]]
+  (with-open [ps (jdbc/prepare-statement (jdbc/get-connection db) statement :return-keys return-keys)]
+    (jdbc/db-do-prepared-return-keys db ps params)))
+
 (defn query-handler
   [db sql-and-params]
   (jdbc/query db sql-and-params
@@ -95,7 +100,7 @@
               :row-fn (comp val first seq)
               :result-set-fn first))
 
-(def ^:private supported-attributes #{:single?})
+(def ^:private supported-attributes #{:single? :return-keys})
 
 (defn- check-attributes [attributes]
   (when attributes
@@ -118,7 +123,9 @@
   (assert statement "Query statement is mandatory.")
   (check-attributes attributes)
   (let [jdbc-fn (cond
-                  (= (take-last 2 name) [\< \!]) insert-handler
+                  (= (take-last 2 name) [\< \!]) (if-let [rk (:return-keys attributes)]
+                                                   (partial insert-handler-return-keys rk)
+                                                   insert-handler)
                   (= (last name) \!) execute-handler
                   (:single? attributes) query-handler-single-value
                   :else query-handler)
