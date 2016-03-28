@@ -50,8 +50,13 @@ of at the call site (with yesql's call-options).
 
 Attributes are placed between the name line and the docstring.
 
-Currently the only supported attribute is single? which if true, will return a
-single value as a result of the query function.
+Currently two attributes are supported: single? and return-keys.
+
+
+### single?
+
+Single? attribute (for selects) changes the result set processing to return a
+single value.
 
 ```SQL
 -- name: count-people-older-than
@@ -62,6 +67,21 @@ SELECT COUNT(*) FROM people WHERE age > :age
 
 Will generate a function that returns a the count number as a single value when
 called, instead of a sequence of maps.
+
+### return-keys
+
+Return keys (for insert) is a vector of strings for keys to return.
+This is mainly for Oracle users.
+
+```SQL
+-- name: insert-foo<!
+-- return-keys: ["FOO_ID"]
+-- Insert a foo and return FOO_ID
+INSERT INTO foo (bar) VALUES (:bar)
+```
+
+Will generate a function that sets the prepared statement return keys
+attribute.
 
 ## Automatic reload
 
