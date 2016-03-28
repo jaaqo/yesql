@@ -84,7 +84,8 @@
 
 (defn insert-handler-return-keys
   [return-keys db [statement & params]]
-  (with-open [ps (jdbc/prepare-statement (jdbc/get-connection db) statement :return-keys return-keys)]
+  (with-open [ps (jdbc/prepare-statement (jdbc/get-connection db) statement
+                                         :return-keys return-keys)]
     (jdbc/db-do-prepared-return-keys db ps params)))
 
 (defn query-handler

@@ -51,3 +51,14 @@ WHERE name LIKE :name AND (age < :age OR age > :age)
 -- name: count-people-older-than
 -- single?: true
 SELECT COUNT(*) FROM person WHERE age > :age
+
+
+-- name: insert-person-return-keys<!
+-- return-keys: ["PERSON_ID"]
+-- Insert person and return keys
+INSERT INTO person (name, age) VALUES (:name, :age)
+
+-- name: insert-person-empty-return-keys<!
+-- return-keys: []
+-- Insert person with empty return keys
+INSERT INTO person (name, age) VALUES (:name, :age)

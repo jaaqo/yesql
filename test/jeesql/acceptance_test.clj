@@ -76,6 +76,15 @@
         (insert-person<! derby-db {:name 5
                                    :age "Eamonn"}))
 
+
+;; Test return keys
+(expect {:1 6M}
+        (insert-person-return-keys<! derby-db {:name "Max" :age 71}))
+
+;; Empty return-keys array is a silly test
+(expect 1
+        (insert-person-empty-return-keys<! derby-db {:name "Barbara" :age 44}))
+
 ;; Drop
 (expect (drop-person-table! derby-db))
 
