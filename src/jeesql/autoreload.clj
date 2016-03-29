@@ -63,6 +63,3 @@ with the file contents.
          #(when %
             (.shutdownNow %)
             nil)))
-
-(when-not *compile-files*
-  (start-autoreload))
