@@ -9,9 +9,9 @@
 ;; So we might as well just implement our own simpler polling.
 
 
-;; The watch agent has is a mapping of file url to
+;; The watch files is a mapping of file url to
 ;; file information. :timestamp, :reload-fn
-(def watch-agent (agent {}))
+(def watched-files (atom {}))
 
 (defn- watch-file
   "Ensure that the given SQL file is being watched"
@@ -45,7 +45,7 @@
 with the file contents.
   If the URL is not a file: URL, it cannot be reloaded and is ignored."
   [file-url reload-fn]
-  (send watch-agent watch-file file-url reload-fn))
+  (swap! watched-files watch-file file-url reload-fn))
 
 (def reload-poll-ms 2000)
 (defonce reloader (atom nil))
@@ -55,7 +55,7 @@ with the file contents.
          (fn [reloader]
            (or reloader
                (doto (Executors/newSingleThreadScheduledExecutor)
-                 (.scheduleAtFixedRate #(send watch-agent check-for-reload)
+                 (.scheduleAtFixedRate #(swap! watched-files check-for-reload)
                                        reload-poll-ms reload-poll-ms
                                        TimeUnit/MILLISECONDS))))))
 (defn stop-autoreload []
