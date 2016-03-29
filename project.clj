@@ -1,4 +1,4 @@
-(defproject webjure/jeesql "0.3.1"
+(defproject webjure/jeesql "0.3.2"
   :description "A Clojure library for using SQL"
   :url "https://github.com/tatut/jeesql"
   :license {:name "Eclipse Public License"
