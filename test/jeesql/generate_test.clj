@@ -21,9 +21,9 @@
   => #{:name :country :?})
 
 ;;; Testing in-list-parmaeter for "IN-list" statements.
-(expect [true true true false false]
-        (map in-list-parameter?
-             (list []
+(expect [true true true nil true]
+        (mapv in-list-parameter?
+              (list []
                    (list)
                    (lazy-seq (cons 1 [2]))
                    {:a 1}

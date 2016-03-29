@@ -85,6 +85,13 @@
 (expect 1
         (insert-person-empty-return-keys<! derby-db {:name "Barbara" :age 44}))
 
+;; Test that sets and vectors work as in parameters
+(expect 2
+        (count (find-people-with-ages derby-db {:ages #{71 44}})))
+(expect 3
+        (count (find-people-with-ages derby-db {:ages [35 25 44]})))
+
+
 ;; Drop
 (expect (drop-person-table! derby-db))
 
