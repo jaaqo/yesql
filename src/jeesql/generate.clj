@@ -9,7 +9,7 @@
 
 (def in-list-parameter?
   "Check if a type triggers IN-list expansion."
-  (some-fn list? vector? seq?))
+  (some-fn list? vector? seq? set?))
 
 (defn- args-to-placeholders
   [args]
