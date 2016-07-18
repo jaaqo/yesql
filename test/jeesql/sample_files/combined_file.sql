@@ -1,11 +1,9 @@
-       
-
 -- name: the-time
 -- This is another time query.
 -- Exciting, huh?
 SELECT CURRENT_TIMESTAMP
 FROM SYSIBM.SYSDUMMY1
-  
+
 -- name: sums
 -- Just in case you've forgotten
 -- I made you a sum.
@@ -21,3 +19,9 @@ SELECT
     1 + 1 AS two
     -- I find this query dull.
 FROM SYSIBM.SYSDUMMY1
+
+
+-- name: query-with-default
+-- default-parameters: {:foo 42}
+-- This query has default parameter foo
+SELECT * FROM foobar WHERE foo = :foo AND bar = :bar

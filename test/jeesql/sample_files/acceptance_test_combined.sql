@@ -66,3 +66,8 @@ INSERT INTO person (name, age) VALUES (:name, :age)
 -- name: find-people-with-ages
 -- Find people with age IN
 SELECT * FROM person WHERE age IN (:ages)
+
+-- name: find-people-with-name-or-alice
+-- default-parameters: {:name "Alice"}
+-- Find person by name, or Alice if not specified
+SELECT name,age FROM person WHERE name = :name

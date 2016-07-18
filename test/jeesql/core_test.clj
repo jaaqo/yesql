@@ -66,7 +66,7 @@
 
 ;;; Check defqueries returns the list of defined vars.
 (expect-let [return-value (defqueries "jeesql/sample_files/combined_file.sql")]
-  (repeat 3 clojure.lang.Var)
+  (repeat 4 clojure.lang.Var)
   (map type return-value))
 
 ;;; SQL's quoting rules.

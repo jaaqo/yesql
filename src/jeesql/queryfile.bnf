@@ -5,7 +5,7 @@ attributes = attribute+
 
 attribute = <whitespace? COMMENT_MARKER whitespace?> attribute-name <':' whitespace*> attribute-value <newline>
 attribute-name = #'[\w-\?]+'
-attribute-value = non-whitespace
+attribute-value = #'[^\n]+'
 
 docstring = !attribute comment+
 

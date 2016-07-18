@@ -101,7 +101,14 @@
               :row-fn (comp val first seq)
               :result-set-fn first))
 
-(def ^:private supported-attributes #{:single? :return-keys})
+(defn query-handler-cursor
+  [fetch-size db sql-and-params]
+  (jdbc/db-query-with-resultset
+   db (into [{:fetch-size 50}]
+            sql-and-params)
+   jdbc/result-set-seq))
+
+(def ^:private supported-attributes #{:single? :return-keys :default-parameters :fetch-size})
 
 (defn- check-attributes [attributes]
   (when attributes
@@ -129,6 +136,7 @@
                                                    insert-handler)
                   (= (last name) \!) execute-handler
                   (:single? attributes) query-handler-single-value
+                  (:fetch-size attributes) (partial query-handler-cursor (:fetch-size attributes))
                   :else query-handler)
         required-args (expected-parameter-list statement)
         required-arg-symbols (map (comp symbol clojure.core/name)
@@ -141,7 +149,8 @@
                   (jdbc-fn connection
                            (rewrite-query-for-jdbc tokens args)))
         [display-args generated-function]
-        (let [named-args (when-not (empty? required-arg-symbols)
+        (let [default-parameters (or (:default-parameters attributes) {})
+              named-args (when-not (empty? required-arg-symbols)
                            {:keys (vec required-arg-symbols)})]
           (cond
             (nil? named-args)
@@ -160,7 +169,8 @@
                  (if (and (= 1 (count args))
                           (map? (first args)))
                    ;; One argument that is a map
-                   (real-fn connection (first args))
+                   (real-fn connection (merge default-parameters
+                                              (first args)))
 
                    ;; Given all positional args
                    (real-fn connection (zipmap keywords args))))])
@@ -168,7 +178,7 @@
             :default
             [(list ['connection named-args])
              (fn query-wrapper-fn [connection args]
-               (real-fn connection args))]))]
+               (real-fn connection (merge default-parameters args)))]))]
     (with-meta generated-function
       (merge {:name name
               :arglists display-args

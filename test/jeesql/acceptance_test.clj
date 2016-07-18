@@ -46,6 +46,12 @@
 (expect 2 (count (find-older-than derby-db {:age 30})))
 (expect 0 (count (find-older-than derby-db {:age 50})))
 
+
+;; Test that default parameters work
+(expect {:name "Alice" :age 38} (first (find-people-with-name-or-alice derby-db {})))
+(expect {:name "Bob" :age 25} (first (find-people-with-name-or-alice derby-db {:name "Bob"})))
+
+
 ;; Delete -> Select.
 (expect 1 (delete-person! derby-db {:name "Alice"}))
 
@@ -57,9 +63,12 @@
 ;; returns a single value
 (expect 2 (count-people-older-than derby-db {:age 10}))
 
+(expect 2 (count (find-older-than derby-db {:age 10})))
+
+
 ;; Failing transaction: Insert with abort.
 ;; Insert two rows in a transaction. The second throws a deliberate error, meaning no new rows created.
-(expect 2 (count (find-older-than derby-db {:age 10})))
+
 
 (expect SQLException
         (jdbc/with-db-transaction [connection derby-db]

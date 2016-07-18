@@ -1,47 +1,65 @@
 (ns jeesql.queryfile-parser
   (:require [clojure.java.io :as io]
             [clojure.string :refer [join trim]]
-            [instaparse.core :as instaparse]
             [jeesql.types :refer [map->Query]]
             [jeesql.util :refer [str-non-nil]]
-            [jeesql.instaparse-util :refer [process-instaparse-result]]))
+            [clojure.string :as str]))
 
-(def parser
-  (let [url (io/resource "jeesql/queryfile.bnf")]
-    (assert url)
-    (instaparse/parser url)))
+(def header-attribute #"^--\s*([^:]+):\s*(.+)$")
+(def header-comment #"^--.*")
+(def comment-line #"\s*--.*")
 
-(def parser-transforms
-  {:whitespace str-non-nil
-   :non-whitespace str-non-nil
-   :newline str-non-nil
-   :any str-non-nil
-   :line str-non-nil
-   :comment (fn [& args]
-              [:comment (apply str-non-nil args)])
-   :docstring (fn [& comments]
-                [:docstring (trim (join (map second comments)))])
-   :statement (fn [& lines]
-                [:statement (trim (join lines))])
-   :query (fn [& args]
-            (map->Query (into {} args)))
-   :queries list
-   :attributes (fn [& args]
-                 [:attributes
-                  (into {}
-                        (map (fn [[_ name value]]
-                               [name value]))
-                        args)])
-   :attribute-name keyword
-   :attribute-value read-string
-   })
+(defn- attribute-line? [line]
+  (re-matches header-attribute line))
+
+(defn- header-comment-line? [line]
+  (re-matches header-comment line))
+
+(defn- comment-line? [line]
+  (re-matches comment-line line))
+
+(defn- parse-header [header-lines]
+  (reduce
+   (fn [headers line]
+     (let [[_ name val] (re-matches header-attribute line)]
+       (if (and name val)
+         (assoc headers (keyword name)
+                (read-string val))
+         headers)))
+   {}
+   header-lines))
+
+(defn parse [lines]
+  (let [lines (drop-while (comp not attribute-line?) lines)
+        [header lines] (split-with attribute-line? lines)
+        [comment lines] (split-with header-comment-line? lines)
+        [statement lines] (split-with (comp not attribute-line?) lines)
+        attributes (parse-header header)]
+    (if-not (:name attributes)
+      (throw (ex-info "Parse error: query must have a name" {}))
+      [{:name (name (:name attributes))
+        :docstring (->> comment
+                        (map #(str/replace (str/trim %) #"^--\s*" ""))
+                        (str/join "\n"))
+        :statement (->> statement
+                        (remove comment-line?)
+                        (str/join "\n")
+                        str/trim)
+        :attributes (dissoc attributes :name)}
+       lines])))
+
+(defn parse-all [lines]
+  (loop [queries []
+         lines lines]
+    (if (empty? lines)
+      queries
+      (let [[query lines] (parse lines)]
+        (recur (conj queries query)
+               lines)))))
+
+
 
 (defn parse-tagged-queries
   "Parses a string with Jeesql's defqueries syntax into a sequence of maps."
   [text]
-  (process-instaparse-result
-   (instaparse/transform parser-transforms
-                         (instaparse/parses parser
-                                            (str text "\n") ;;; TODO This is a workaround for files with no end-of-line marker.
-                                            :start :queries))
-   {}))
+  (mapv map->Query (parse-all (str/split-lines text))))
