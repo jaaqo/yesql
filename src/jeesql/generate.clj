@@ -4,7 +4,8 @@
             [clojure.string :refer [join lower-case]]
             [jeesql.util :refer [create-root-var]]
             [jeesql.types :refer [map->Query]]
-            [jeesql.statement-parser :refer [tokenize]])
+            [jeesql.statement-parser :refer [tokenize]]
+            [clojure.core.async :as async])
   (:import [jeesql.types Query]))
 
 (def in-list-parameter?
@@ -89,10 +90,10 @@
     (jdbc/db-do-prepared-return-keys db ps params)))
 
 (defn query-handler
-  [db sql-and-params]
+  [row-fn db sql-and-params]
   (jdbc/query db sql-and-params
               :identifiers lower-case
-              :row-fn identity
+              :row-fn row-fn
               :result-set-fn doall))
 
 (defn query-handler-single-value
@@ -101,14 +102,23 @@
               :row-fn (comp val first seq)
               :result-set-fn first))
 
-(defn query-handler-cursor
-  [fetch-size db sql-and-params]
+(defn query-handler-stream
+  [fetch-size row-fn db result-channel sql-and-params]
   (jdbc/db-query-with-resultset
-   db (into [{:fetch-size 50}]
+   db (into [{:fetch-size fetch-size}]
             sql-and-params)
-   jdbc/result-set-seq))
+   (fn [rs]
+     (loop [[row & rows] (jdbc/result-set-seq rs)]
+       (if-not row
+         ;; No more rows, close the channel
+         (async/close! result-channel)
+         ;; have more rows to send
+         (when (async/>!! result-channel (row-fn row))
+           ;; channel is not closed yet
+           (recur rows)))))))
 
-(def ^:private supported-attributes #{:single? :return-keys :default-parameters :fetch-size})
+(def ^:private supported-attributes #{:single? :return-keys :default-parameters
+                                      :fetch-size :row-fn})
 
 (defn- check-attributes [attributes]
   (when attributes
@@ -124,20 +134,23 @@
   - If the query name ends in `!` it will call `clojure.java.jdbc/execute!`,
   - If the query name ends in `<!` it will call `clojure.java.jdbc/insert!`,
   - otherwise `clojure.java.jdbc/query` will be used."
-  [{:keys [name docstring statement attributes]
-    :as query}
+  [ns {:keys [name docstring statement attributes]
+       :as query}
    query-options]
   (assert name      "Query name is mandatory.")
   (assert statement "Query statement is mandatory.")
   (check-attributes attributes)
-  (let [jdbc-fn (cond
+  (let [attributes (binding [*ns* ns] (eval attributes))
+        stream? (:fetch-size attributes)
+        row-fn (or (:row-fn attributes) identity)
+        jdbc-fn (cond
                   (= (take-last 2 name) [\< \!]) (if-let [rk (:return-keys attributes)]
                                                    (partial insert-handler-return-keys rk)
                                                    insert-handler)
                   (= (last name) \!) execute-handler
                   (:single? attributes) query-handler-single-value
-                  (:fetch-size attributes) (partial query-handler-cursor (:fetch-size attributes))
-                  :else query-handler)
+                  stream? (partial query-handler-stream (:fetch-size attributes) row-fn)
+                  :else (partial query-handler row-fn))
         required-args (expected-parameter-list statement)
         required-arg-symbols (map (comp symbol clojure.core/name)
                                   required-args)
@@ -157,6 +170,14 @@
             [(list ['connection])
              (fn query-wrapper-fn-noargs [connection]
                (real-fn connection {}))]
+
+            stream?
+            [(list ['connection 'result-channel named-args])
+             (fn query-wrapper-streaming
+               [connection result-channel args]
+               (jdbc-fn connection result-channel
+                        (rewrite-query-for-jdbc tokens
+                                                (merge default-parameters args))))]
 
             (and (:positional? query-options)
                  (< (count required-args) 20))
@@ -190,4 +211,4 @@
   ([this options] (generate-var *ns* this options))
   ([ns this options]
    (create-root-var ns (:name this)
-                    (generate-query-fn this options))))
+                    (generate-query-fn ns this options))))

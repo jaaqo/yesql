@@ -5,7 +5,7 @@
             [jeesql.util :refer [str-non-nil]]
             [clojure.string :as str]))
 
-(def header-attribute #"^--\s*([^:]+):\s*(.+)$")
+(def header-attribute #"^--\s*([^\s:]+):\s*(.+)$")
 (def header-comment #"^--.*")
 (def comment-line #"\s*--.*")
 
