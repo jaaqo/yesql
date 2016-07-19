@@ -13,6 +13,7 @@ I will only document the notable differences here.
 * Query attributes in SQL files (see below)
 * defquery support is removed (only defqueries supported)
 * automatic reload of defqueries files
+* No instaparse dependency (see parsing below)
 
 ## Positional arguments
 
@@ -83,11 +84,88 @@ INSERT INTO foo (bar) VALUES (:bar)
 Will generate a function that sets the prepared statement return keys
 attribute.
 
+### fetch-size
+
+Fetch size sets the JDBC fetch size and streams the results a core.async channel. Generates a
+function with an additional result-channel parameter after the connection parameter. The client
+must provide the channel when calling the query function.
+
+If the result channel is closed by the consumer before all results are processed, the streaming is
+stopped and the result set will be closed. This makes it easy for the consumer to stop early.
+
+```SQL
+-- name: fetch-logs-for-event
+-- fetch-size: 100
+SELECT * FROM log WHERE event = :event;
+```
+
+Generates a function with 3 parameters: the connection, the result channel and the query
+parameters map.
+
+```clojure
+(let [ch (async/chan 100)]
+  (async/thread (fetch-logs-for-event db ch {:event "login"}))
+  ;; do something with ch
+  )
+```
+
+### row-fn
+
+Specifying row-fn changes the way each row is processed. As attributes are evaluated in the same
+namespace as the defqueries call, you can refer to functions for post-processing. This can be used,
+for example, to process values to a more suitable format without having to do it after each call.
+
+```clojure
+(ns my.queries
+  (:require [jeesql.core :refer [defqueries]]))
+
+(defn extract-tags
+  "Turn tags from a JDBC array into a set of strings"
+  [{tags :tags :as row}]
+  (assoc row
+         :tags (set (.getArray tags))))
+
+(defqueries "my/queries/queries.sql")
+
+...
+```
+
+And in queries.sql file:
+```SQL
+-- name: fetch-item-by-id
+-- row-fn: extract-tags
+SELECT name, category, tags FROM item WHERE id = :id
+
+...
+```
+
 ## Automatic reload
 
 Calls to defqueries will register the files for watching. If the file changes the
 file is reloaded. This removes the need to constantly switch between the SQL file
 and the Clojure file to eval again when developing.
+
+
+## Parsing
+
+Jeesql uses a simple regex based parser for reading multiple queries from a file and
+to tokenize a single SQL statement.
+
+Parameters always start with a (single) colon and the first character must be an alpha (a-zA-Z)
+the remaining characters may be alphanumeric or one of '-', '_', '?'.
+
+For example, the following parameter names are all fine:
+
+* :foo
+* :foo-bar
+* :is-foo?
+* :foo123
+* :foo_and_bar
+
+Note that as the name may contain the '-' character, care must be taken not to mistake it
+for arithmetic in SQL, so: *:age-1* is interpreted as the parameter "age-1" not age minus 1.
+
+Colon characters can be escaped by prefixing it with a single backslash.
 
 ## Installation
 

@@ -1,31 +1,30 @@
 (ns jeesql.statement-parser
   (:require [clojure.java.io :as io]
             [clojure.string :refer [join]]
-            [instaparse.core :as instaparse]
             [jeesql.util :refer [str-non-nil]]
-            [jeesql.instaparse-util :refer [process-instaparse-result]])
+            [clojure.string :as str])
   (:import [jeesql.types Query]))
 
-(def parser
-  (instaparse/parser (io/resource "jeesql/statement.bnf")))
+(def ^{:doc "Regular expression to split statement into three parts: before the first parameter,
+the parameter name and the rest of the statement. A parameter always starts with a single colon and
+may contain alphanumerics as well as '-', '_' and '?' characters."}
+  parameter #"(?s)(.*?[^:\\]):(\p{Alpha}[\p{Alnum}\_\-\?]*)(.*)")
 
-(def ^:private parser-transforms
-  {:statement vector
-   :substatement str-non-nil
-   :string str-non-nil
-   :string-special str-non-nil
-   :string-delimiter identity
-   :string-normal identity
-   :parameter identity
-   :placeholder-parameter symbol
-   :named-parameter symbol})
+(defn- replace-escaped-colon [string]
+  (str/replace string #"\\:" ":"))
 
 (defn- parse-statement
   [statement context]
-  (process-instaparse-result
-   (instaparse/transform parser-transforms
-                         (instaparse/parses parser statement :start :statement))
-   context))
+  (loop [acc []
+         rest-of-statement statement]
+    (let [[_ before parameter after :as match] (re-find parameter rest-of-statement)]
+      (if-not match
+        (if rest-of-statement
+          (conj acc (replace-escaped-colon rest-of-statement))
+          acc)
+        (recur (into acc
+                     [(replace-escaped-colon before) (symbol parameter)])
+               after)))))
 
 (defmulti tokenize
   "Turn a raw SQL statement into a vector of SQL-substrings
