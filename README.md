@@ -3,6 +3,10 @@
 Jeesql is a Clojure library for _using_ SQL. Please see krisajenkins/yesql for yesql documentation.
 I will only document the notable differences here.
 
+[![Build Status](https://travis-ci.org/tatut/jeesql.svg?branch=master)](https://travis-ci.org/tatut/jeesql)
+
+[![Clojars Project](http://clojars.org/webjure/jeesql/latest-version.svg)](http://clojars.org/webjure/jeesql)
+
 ## Notable differences to yesql 0.5 branch
 
 * Connection is *always* first parameter to query function
@@ -166,10 +170,3 @@ Note that as the name may contain the '-' character, care must be taken not to m
 for arithmetic in SQL, so: *:age-1* is interpreted as the parameter "age-1" not age minus 1.
 
 Colon characters can be escaped by prefixing it with a single backslash.
-
-## Installation
-
-Add this to your [Leiningen](https://github.com/technomancy/leiningen) `:dependencies`:
-
-
-[![Clojars Project](http://clojars.org/webjure/jeesql/latest-version.svg)](http://clojars.org/webjure/jeesql)
