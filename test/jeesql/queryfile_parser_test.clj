@@ -2,7 +2,6 @@
   (:require [clojure.string :refer [join]]
             [clojure.template :refer [do-template]]
             [expectations :refer :all]
-            [instaparse.core :as instaparse]
             [jeesql.queryfile-parser :refer :all]
             [jeesql.types :refer [map->Query]]
             [jeesql.util :refer [slurp-from-classpath]])
