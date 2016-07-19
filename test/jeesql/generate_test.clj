@@ -11,14 +11,14 @@
   "SELECT * FROM user"
   => #{}
 
-  "SELECT * FROM user WHERE user_id = ?"
-  => #{:?}
+  "SELECT * FROM user WHERE user_id = :id"
+  => #{:id}
 
   "SELECT * FROM user WHERE user_id = :name"
   => #{:name}
 
-  "SELECT * FROM user WHERE user_id = :name AND country = :country AND age IN (?,?)"
-  => #{:name :country :?})
+  "SELECT * FROM user WHERE user_id = :name AND country = :country AND age IN (:ages)"
+  => #{:name :country :ages})
 
 ;;; Testing in-list-parmaeter for "IN-list" statements.
 (expect [true true true nil true]
@@ -39,8 +39,8 @@
   {:country "gb"}
   => ["SELECT age FROM users WHERE country = ?" "gb"]
 
-  "SELECT age FROM users WHERE (country = ? OR country = ?) AND name = :name"
-  {:? ["gb" "us"]
+  "SELECT age FROM users WHERE (country = :c1 OR country = :c2) AND name = :name"
+  {:c1 "gb" :c2 "us"
    :name "tom"}
   => ["SELECT age FROM users WHERE (country = ? OR country = ?) AND name = ?" "gb" "us" "tom"]
 
@@ -90,5 +90,5 @@
                                 {:country "gb"}))
 
 (expect AssertionError
-        (rewrite-query-for-jdbc (tokenize "SELECT age FROM users WHERE country = ? AND name = ?")
+        (rewrite-query-for-jdbc (tokenize "SELECT age FROM users WHERE country = :c AND name = :n")
                                 {}))
