@@ -26,14 +26,13 @@
                 (-> first :time))
         (mixed-parameters-query derby-db
                                 {:value1 1
-                                 :value2 2
-                                 :? [3 4]}))
+                                 :value2 2}))
 
 (expect empty?
         (mixed-parameters-query derby-db
                                 {:value1 1
                                  :value2 2
-                                 :? [0 0]}))
+                                 :value3 0}))
 
 ;;; Test comment rules.
 (defqueries "jeesql/sample_files/inline_comments.sql")
@@ -55,7 +54,7 @@
                  1 (-> :arglists count)
 
                  2 (-> :arglists first count)
-                 #{'? 'value1 'value2} (-> :arglists first second   :keys set))
+                 #{'value1 'value2 'value3} (-> :arglists first second   :keys set))
         (meta (var mixed-parameters-query)))
 
 ;; Running a query in a transaction and using the result outside of it should work as expected.

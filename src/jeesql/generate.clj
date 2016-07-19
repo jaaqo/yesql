@@ -20,10 +20,9 @@
 
 (defn- analyse-statement-tokens
   [tokens]
-  {:expected-keys (set (map keyword (remove (partial = '?)
-                                            (filter symbol? tokens))))
-   :expected-positional-count (count (filter (partial = '?)
-                                             tokens))})
+  {:expected-keys (set (map keyword (filter symbol? tokens)))
+   ;; Positional ? parameters are no longer supported
+   :expected-positional-count 0})
 
 (defn- positional-parameter-list [tokens]
   (distinct (filter symbol? tokens)))
@@ -32,9 +31,7 @@
   [query]
   (let [tokens (tokenize query)
         {:keys [expected-keys expected-positional-count]} (analyse-statement-tokens tokens)]
-    (if (zero? expected-positional-count)
-      expected-keys
-      (conj expected-keys :?))))
+    expected-keys))
 
 (defn rewrite-query-for-jdbc
   [tokens initial-args]
@@ -50,9 +47,8 @@
     (assert (= expected-positional-count actual-positional-count)
             (format (join "\n"
                           ["Query argument mismatch."
-                           "Expected %d positional parameters. Got %d."
-                           "Supply positional parameters as {:? [...]}"])
-                    expected-positional-count actual-positional-count))
+                           "Positional ? parameters are not supported! Got %d."])
+                    actual-positional-count))
     (let [[final-query final-parameters consumed-args]
           (reduce (fn [[query parameters args] token]
                     (cond
