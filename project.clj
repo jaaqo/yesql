@@ -1,6 +1,6 @@
-(defproject yesql "0.5.3"
+(defproject org.clojars.mpenttila/yesql "0.6.0"
   :description "A Clojure library for using SQL"
-  :url "https://github.com/krisajenkins/yesql"
+  :url "https://github.com/mpenttila/yesql"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
